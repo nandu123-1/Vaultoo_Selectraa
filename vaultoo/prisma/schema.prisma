@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          String    @default("USER") // USER | OWNER | ADMIN
+  emailVerified Boolean   @default(false)
+  verifyToken   String?
+  verifyExpires DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts         Account[]
+  requestsMade     AccessRequest[] @relation("Requester")
+  requestsReceived AccessRequest[] @relation("Owner")
+  sessions         Session[]
+  activityLogs     ActivityLog[]
+}
+
+model Account {
+  id                  String   @id @default(cuid())
+  ownerId             String
+  platform            String   @default("selectraa")
+  encryptedEmail      String
+  encryptedPassword   String
+  encryptionIV        String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  owner    User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  requests AccessRequest[]
+
+  @@index([ownerId])
+}
+
+model AccessRequest {
+  id            String   @id @default(cuid())
+  requesterId   String
+  ownerId       String
+  accountId     String
+  status        String   @default("PENDING") // PENDING | APPROVED | DENIED | EXPIRED | EXTENSION_PENDING
+  duration      Int      // requested duration in minutes
+  reason        String?
+  otp           String?
+  otpExpiresAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  requester User    @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  owner     User    @relation("Owner", fields: [ownerId], references: [id], onDelete: Cascade)
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  session   Session?
+
+  @@index([requesterId])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model Session {
+  id            String   @id @default(cuid())
+  requestId     String   @unique
+  userId        String
+  sessionToken  String   @unique
+  status        String   @default("ACTIVE") // ACTIVE | EXPIRED | KILLED
+  expiresAt     DateTime
+  userIp        String?
+  userAgent     String?
+  riskLevel     String   @default("LOW") // LOW | MEDIUM | HIGH | CRITICAL
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  request      AccessRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityLogs ActivityLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  action    String
+  url       String?
+  details   String?
+  riskFlag  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId])
+}
