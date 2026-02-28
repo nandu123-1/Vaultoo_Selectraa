@@ -4,9 +4,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { hashPassword, signToken } from "@/lib/auth";
-import { generateVerifyToken } from "@/lib/otp";
-import { sendEmail, verificationEmailHTML } from "@/lib/email";
-import { CORS_HEADERS, VERIFY_TOKEN_EXPIRY_HOURS } from "@/lib/constants";
+import { CORS_HEADERS } from "@/lib/constants";
 import type { RegisterRequest, ApiResponse, SafeUser } from "@/types";
 
 export async function POST(request: Request) {
@@ -42,10 +40,6 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await hashPassword(password);
-    const verifyToken = generateVerifyToken();
-    const verifyExpires = new Date(
-      Date.now() + VERIFY_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
-    );
 
     const userRole = role === "USER" ? "USER" : "OWNER";
 
@@ -55,17 +49,8 @@ export async function POST(request: Request) {
         name,
         password: hashedPassword,
         role: userRole,
-        verifyToken,
-        verifyExpires,
+        emailVerified: true,
       },
-    });
-
-    // Send verification email
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify?token=${verifyToken}`;
-    await sendEmail({
-      to: user.email,
-      subject: "Verify your Vaultoo account",
-      html: verificationEmailHTML(user.name, verifyUrl),
     });
 
     const token = signToken({
@@ -86,7 +71,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json<ApiResponse<SafeUser>>(
       {
         success: true,
-        message: "Account created. Please verify your email.",
+        message: "Account created successfully.",
         data: safeUser,
       },
       { status: 201, headers: CORS_HEADERS },

@@ -3,15 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  Mail,
-  Lock,
-  User,
-  Shield,
-  ArrowRight,
-  Crown,
-  UserCheck,
-} from "lucide-react";
+import { Mail, Lock, User, Shield, ArrowRight } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -21,7 +13,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"OWNER" | "USER">("OWNER");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +36,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
@@ -55,7 +46,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/verify");
+      router.push("/login");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -86,49 +77,6 @@ export default function RegisterPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Role Selector */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              I want to
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole("OWNER")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  role === "OWNER"
-                    ? "bg-violet-500/20 border-violet-500/50 text-white"
-                    : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
-                }`}
-              >
-                <Crown
-                  className={`w-5 h-5 mb-1.5 ${role === "OWNER" ? "text-violet-400" : "text-slate-500"}`}
-                />
-                <p className="text-sm font-medium">Share Access</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  I own accounts &amp; grant access
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("USER")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  role === "USER"
-                    ? "bg-violet-500/20 border-violet-500/50 text-white"
-                    : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
-                }`}
-              >
-                <UserCheck
-                  className={`w-5 h-5 mb-1.5 ${role === "USER" ? "text-violet-400" : "text-slate-500"}`}
-                />
-                <p className="text-sm font-medium">Request Access</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  I need to use shared accounts
-                </p>
-              </button>
-            </div>
-          </div>
-
           <Input
             label="Full Name"
             type="text"
