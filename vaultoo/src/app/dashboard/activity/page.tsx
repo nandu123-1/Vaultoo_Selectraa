@@ -326,7 +326,7 @@ export default function ActivityPage() {
         isOpen={feedOpen}
         onClose={stopWatching}
         title="Live Screen Feed"
-        size="lg"
+        size="xl"
       >
         <div className="space-y-4">
           <div className="relative rounded-xl overflow-hidden bg-black border border-white/10 aspect-video">

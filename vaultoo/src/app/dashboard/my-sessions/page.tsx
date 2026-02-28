@@ -229,7 +229,7 @@ export default function MySessionsPage() {
                 </div>
 
                 {/* Session Info */}
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                   <div className="bg-black/20 rounded-lg px-3 py-2">
                     <p className="text-xs text-slate-500">Platform</p>
                     <p className="text-sm text-white font-medium">
@@ -345,7 +345,7 @@ export default function MySessionsPage() {
                 transition={{ delay: i * 0.05 }}
               >
                 <Card className="p-5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-white">

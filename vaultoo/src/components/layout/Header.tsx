@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -8,23 +8,35 @@ import type { SafeUser } from "@/types";
 
 interface HeaderProps {
   user: SafeUser | null;
+  onMenuClick?: () => void;
 }
 
-export default function Header({ user }: HeaderProps) {
+export default function Header({ user, onMenuClick }: HeaderProps) {
   const [notifications] = useState<string[]>([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
   return (
-    <header className="h-16 border-b border-white/5 bg-black/20 backdrop-blur-xl flex items-center justify-between px-6">
-      {/* Search */}
-      <div className="relative w-72">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-        <input
-          type="text"
-          placeholder="Search sessions, requests..."
-          className="w-full pl-10 pr-4 py-2 rounded-xl text-sm text-white bg-white/5 border border-white/10
-            placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all"
-        />
+    <header className="h-16 border-b border-white/5 bg-black/20 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6">
+      {/* Left side: hamburger + search */}
+      <div className="flex items-center gap-3">
+        {/* Mobile hamburger */}
+        <button
+          onClick={onMenuClick}
+          className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors lg:hidden"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Search */}
+        <div className="relative hidden sm:block w-48 md:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search sessions, requests..."
+            className="w-full pl-10 pr-4 py-2 rounded-xl text-sm text-white bg-white/5 border border-white/10
+              placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all"
+          />
+        </div>
       </div>
 
       {/* Right Side */}

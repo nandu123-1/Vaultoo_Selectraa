@@ -8,13 +8,14 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 const sizeClasses = {
   sm: "max-w-sm",
   md: "max-w-lg",
   lg: "max-w-2xl",
+  xl: "max-w-[75vw]",
 };
 
 export default function Modal({
@@ -46,6 +47,7 @@ export default function Modal({
             className={`
               fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
               w-[calc(100%-2rem)] ${sizeClasses[size]}
+              max-h-[90vh] overflow-y-auto
               bg-slate-900/95 backdrop-blur-xl
               border border-white/10 rounded-2xl
               shadow-2xl shadow-black/50 z-50

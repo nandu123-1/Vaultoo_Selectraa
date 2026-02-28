@@ -75,6 +75,7 @@ const DOM = {
 document.addEventListener("DOMContentLoaded", () => {
   bindEvents();
   initLandingPage();
+  initMobileNav();
   // Check for Vaultoo URL params first (auto-login from Vaultoo dashboard)
   checkVaultooParams();
   checkExistingSession();
@@ -148,6 +149,25 @@ function initLandingPage() {
   );
 
   fadeElements.forEach((el) => observer.observe(el));
+}
+
+function initMobileNav() {
+  const hamburger = document.getElementById("navHamburger");
+  const navLinks = document.getElementById("navLinks");
+  if (!hamburger || !navLinks) return;
+
+  hamburger.addEventListener("click", () => {
+    navLinks.classList.toggle("open");
+    hamburger.classList.toggle("active");
+  });
+
+  // Close menu when a link is clicked
+  navLinks.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      navLinks.classList.remove("open");
+      hamburger.classList.remove("active");
+    });
+  });
 }
 
 function showLogin() {

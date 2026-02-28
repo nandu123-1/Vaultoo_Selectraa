@@ -199,7 +199,7 @@ export default function RequestsPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Card>
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="flex items-start gap-4">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0">
                           {req.requester.name.charAt(0)}
@@ -236,7 +236,7 @@ export default function RequestsPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                         {(req.status === "PENDING" ||
                           req.status === "EXTENSION_PENDING") && (
                           <>

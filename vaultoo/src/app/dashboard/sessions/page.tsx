@@ -94,7 +94,7 @@ function SessionCard({
         </div>
 
         {/* Metadata */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Clock className="w-3.5 h-3.5" />
             <span>
@@ -217,7 +217,7 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <MonitorUp className="w-6 h-6 text-violet-400" />
@@ -229,7 +229,7 @@ export default function SessionsPage() {
         </div>
 
         {/* Filter */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(["all", "active", "expired", "killed"] as const).map((f) => (
             <button
               key={f}

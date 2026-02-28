@@ -14,6 +14,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [user, setUser] = useState<SafeUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,14 +53,17 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#030014]">
-      <Sidebar />
-      <div className="ml-[260px] transition-all duration-300">
-        <Header user={user} />
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
+      <div className="lg:ml-[260px] transition-all duration-300">
+        <Header user={user} onMenuClick={() => setMobileOpen(true)} />
         <motion.main
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="p-6"
+          className="p-4 sm:p-6"
         >
           {children}
         </motion.main>
