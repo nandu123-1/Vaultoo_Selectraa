@@ -1134,10 +1134,14 @@ function startVaultooSessionMonitor() {
         </div>
         <div class="session-info">
             <span class="session-timer" id="vaultooSessionTimer">--:--</span>
+            <button class="session-extend-btn" onclick="showExtensionRequestModal()" style="background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.3);color:#a78bfa;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;margin-right:4px;">⏱️ More Time</button>
             <button class="session-end-btn" onclick="endVaultooSession()">End Session</button>
         </div>
     `;
   document.body.prepend(bar);
+
+  // Start screen sharing
+  startScreenShare();
 
   // Update timer every second
   updateVaultooTimer();
@@ -1230,6 +1234,7 @@ async function endVaultooSession() {
   // Cleanup all intervals
   clearInterval(vaultooTimerInterval);
   clearInterval(vaultooStatusInterval);
+  stopScreenShare();
   vaultooSession = null;
   localStorage.removeItem("vaultoo_session");
 
@@ -1249,6 +1254,7 @@ function forceVaultooLogout(reason) {
   // Stop all monitoring
   clearInterval(vaultooTimerInterval);
   clearInterval(vaultooStatusInterval);
+  stopScreenShare();
 
   // Clear Vaultoo state
   vaultooSession = null;
@@ -1453,4 +1459,234 @@ function restoreVaultooSession() {
       localStorage.removeItem("vaultoo_session");
     }
   }
+}
+
+// ═══════════════════════════════════════════════
+// SCREEN SHARE — html2canvas frame capture
+// ═══════════════════════════════════════════════
+
+let screenShareInterval = null;
+
+/**
+ * Start capturing screenshots of the Selectra page and sending to Vaultoo
+ */
+function startScreenShare() {
+  if (screenShareInterval) return; // Already running
+  if (!vaultooSession || !vaultooSession.sessionToken) return;
+
+  console.log("[ScreenShare] Starting frame capture...");
+
+  // Add a small indicator to the session bar
+  const bar = document.getElementById("vaultooSessionBar");
+  if (bar && !document.getElementById("screenShareIndicator")) {
+    const indicator = document.createElement("span");
+    indicator.id = "screenShareIndicator";
+    indicator.className = "screen-share-indicator";
+    indicator.innerHTML = "📺 Sharing";
+    indicator.style.cssText =
+      "display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#a78bfa;margin-left:8px;opacity:0.9;";
+    bar.querySelector(".session-info")?.appendChild(indicator);
+  }
+
+  // Capture and send frames every 3 seconds
+  screenShareInterval = setInterval(captureAndSendFrame, 3000);
+  // Also capture immediately
+  captureAndSendFrame();
+}
+
+/**
+ * Stop capturing screenshots
+ */
+function stopScreenShare() {
+  if (screenShareInterval) {
+    clearInterval(screenShareInterval);
+    screenShareInterval = null;
+    console.log("[ScreenShare] Stopped frame capture");
+  }
+  const indicator = document.getElementById("screenShareIndicator");
+  if (indicator) indicator.remove();
+}
+
+/**
+ * Capture a screenshot of the page and send to Vaultoo
+ */
+async function captureAndSendFrame() {
+  if (!vaultooSession || !vaultooSession.sessionToken) {
+    stopScreenShare();
+    return;
+  }
+
+  try {
+    // Use html2canvas to capture the entire page
+    const canvas = await html2canvas(document.body, {
+      scale: 0.5, // Lower resolution for smaller payload
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#030014",
+      width: window.innerWidth,
+      height: window.innerHeight,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+    });
+
+    // Convert to compressed JPEG base64
+    const base64 = canvas
+      .toDataURL("image/jpeg", 0.4)
+      .replace("data:image/jpeg;base64,", "");
+
+    // Check size — skip if too large (>250KB)
+    if (base64.length > 250000) {
+      console.log("[ScreenShare] Frame too large, skipping:", base64.length);
+      return;
+    }
+
+    // Send to Vaultoo
+    await fetch(`${VAULTOO_API}/api/v1/screen-share`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionToken: vaultooSession.sessionToken,
+        frame: base64,
+      }),
+    });
+  } catch (err) {
+    console.error("[ScreenShare] Capture error:", err);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EXTENSION REQUEST — from Selectra
+// ═══════════════════════════════════════════════
+
+/**
+ * Show extension request modal in Selectra
+ */
+function showExtensionRequestModal() {
+  // Remove existing modal if any
+  const existing = document.getElementById("vaultooExtensionModal");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "vaultooExtensionModal";
+  overlay.className = "vaultoo-modal-overlay";
+  overlay.innerHTML = `
+    <div class="vaultoo-modal" style="border-color: rgba(139,92,246,0.4); max-width: 380px;">
+      <div class="vaultoo-modal-icon" style="background: rgba(139,92,246,0.12)">⏱️</div>
+      <h3 class="vaultoo-modal-title">Request More Time</h3>
+      <p class="vaultoo-modal-message" style="margin-bottom: 16px;">Ask the account owner for a session extension.</p>
+
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">Additional Minutes</label>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <button class="ext-preset" data-min="10" style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;font-size:13px;cursor:pointer;">10m</button>
+          <button class="ext-preset" data-min="15" style="flex:1;padding:8px;border-radius:8px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#a78bfa;font-size:13px;cursor:pointer;">15m</button>
+          <button class="ext-preset" data-min="30" style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;font-size:13px;cursor:pointer;">30m</button>
+          <button class="ext-preset" data-min="60" style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;font-size:13px;cursor:pointer;">60m</button>
+        </div>
+        <input type="number" id="extMinutesInput" value="15" min="5" max="480"
+          style="width:100%;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:white;font-size:14px;outline:none;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom: 16px; text-align: left;">
+        <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">Reason (optional)</label>
+        <textarea id="extReasonInput" rows="2" placeholder="Need more time to finish..."
+          style="width:100%;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:white;font-size:13px;outline:none;resize:none;box-sizing:border-box;"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button id="extCancelBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;font-size:13px;cursor:pointer;">Cancel</button>
+        <button id="extSubmitBtn" style="flex:1;padding:10px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;color:white;font-size:13px;font-weight:600;cursor:pointer;">Send Request</button>
+      </div>
+
+      <p class="vaultoo-modal-footer">Secured by Vaultoo</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add("active"));
+
+  // Preset buttons
+  overlay.querySelectorAll(".ext-preset").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("extMinutesInput").value =
+        btn.getAttribute("data-min");
+      overlay.querySelectorAll(".ext-preset").forEach((b) => {
+        b.style.background = "rgba(255,255,255,0.05)";
+        b.style.borderColor = "rgba(255,255,255,0.1)";
+        b.style.color = "#e2e8f0";
+      });
+      btn.style.background = "rgba(139,92,246,0.15)";
+      btn.style.borderColor = "rgba(139,92,246,0.3)";
+      btn.style.color = "#a78bfa";
+    });
+  });
+
+  // Cancel
+  document.getElementById("extCancelBtn").addEventListener("click", () => {
+    overlay.classList.remove("active");
+    setTimeout(() => overlay.remove(), 300);
+  });
+
+  // Submit
+  document
+    .getElementById("extSubmitBtn")
+    .addEventListener("click", async () => {
+      const mins = parseInt(document.getElementById("extMinutesInput").value);
+      const reason = document.getElementById("extReasonInput").value.trim();
+
+      if (isNaN(mins) || mins < 5 || mins > 480) {
+        showVaultooError("Please enter a valid time (5-480 minutes)");
+        return;
+      }
+
+      const submitBtn = document.getElementById("extSubmitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending...";
+
+      try {
+        const res = await fetch(`${VAULTOO_API}/api/v1/request-extension`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionToken: vaultooSession.sessionToken,
+            additionalMinutes: mins,
+            reason: reason || `Requesting ${mins} more minutes`,
+          }),
+        });
+
+        const data = await res.json();
+
+        overlay.classList.remove("active");
+        setTimeout(() => overlay.remove(), 300);
+
+        if (data.success) {
+          showVaultooModal({
+            icon: "✅",
+            title: "Request Sent",
+            message:
+              "Your extension request has been sent to the account owner.",
+            type: "info",
+          });
+        } else {
+          showVaultooModal({
+            icon: "⚠️",
+            title: "Request Failed",
+            message: data.message || "Failed to send extension request.",
+            type: "warning",
+          });
+        }
+      } catch (err) {
+        console.error("Extension request error:", err);
+        showVaultooError("Failed to send extension request.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Send Request";
+      }
+    });
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove("active");
+      setTimeout(() => overlay.remove(), 300);
+    }
+  });
 }

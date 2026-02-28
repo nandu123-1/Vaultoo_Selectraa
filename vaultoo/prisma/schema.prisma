@@ -67,17 +67,19 @@ model AccessRequest {
 }
 
 model Session {
-  id            String   @id @default(cuid())
-  requestId     String   @unique
-  userId        String
-  sessionToken  String   @unique
-  status        String   @default("ACTIVE") // ACTIVE | EXPIRED | KILLED
-  expiresAt     DateTime
-  userIp        String?
-  userAgent     String?
-  riskLevel     String   @default("LOW") // LOW | MEDIUM | HIGH | CRITICAL
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String    @id @default(cuid())
+  requestId      String    @unique
+  userId         String
+  sessionToken   String    @unique
+  status         String    @default("ACTIVE") // ACTIVE | EXPIRED | KILLED
+  expiresAt      DateTime
+  userIp         String?
+  userAgent      String?
+  riskLevel      String    @default("LOW") // LOW | MEDIUM | HIGH | CRITICAL
+  latestFrame    String?   // Base64 JPEG screenshot from Selectra
+  frameUpdatedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   request      AccessRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)

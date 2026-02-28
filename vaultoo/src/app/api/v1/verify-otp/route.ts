@@ -97,6 +97,8 @@ export async function POST(request: Request) {
       success: true,
       message: "OTP verified. Session created.",
       sessionToken: session.sessionToken,
+      sessionId: session.id,
+      requestId: accessRequest.id,
       credentials: {
         email: decryptedEmail,
         password: decryptedPassword,

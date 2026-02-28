@@ -82,6 +82,8 @@ export interface OTPVerifyResponse {
   success: boolean;
   message: string;
   sessionToken?: string;
+  sessionId?: string;
+  requestId?: string;
   credentials?: {
     email: string;
     password: string;

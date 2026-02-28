@@ -16,6 +16,8 @@ const publicPaths = [
   "/api/v1/webhook",
   "/api/v1/session-status",
   "/api/v1/end-session",
+  "/api/v1/screen-share",
+  "/api/v1/request-extension",
 ];
 
 export function middleware(request: NextRequest) {

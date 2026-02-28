@@ -14,6 +14,7 @@ import {
   KeyRound,
   Crown,
   User,
+  Bot,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -34,6 +35,7 @@ const userItems = [
 ];
 
 const commonItems = [
+  { label: "HelpBot", href: "/dashboard/helpbot", icon: Bot },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
