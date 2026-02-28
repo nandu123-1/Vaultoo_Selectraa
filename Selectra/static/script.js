@@ -1167,6 +1167,19 @@ async function checkVaultooSessionActive() {
     if (!data.active) {
       console.log("Vaultoo session terminated:", data.reason);
       forceVaultooLogout(data.reason || "Session ended");
+    } else if (data.expiresAt && data.expiresAt !== vaultooSession.expiresAt) {
+      // Session was extended — update local timer
+      console.log("[Vaultoo] Session extended to:", data.expiresAt);
+      vaultooSession.expiresAt = data.expiresAt;
+      localStorage.setItem("vaultoo_session", JSON.stringify(vaultooSession));
+
+      // Show extension notification
+      showVaultooModal({
+        icon: "⏱️",
+        title: "Session Extended!",
+        message: "The account owner has granted you more time.",
+        type: "info",
+      });
     }
   } catch (err) {
     console.error("Vaultoo status check error:", err);

@@ -172,18 +172,33 @@ export default function ActivityPage() {
       </div>
 
       {/* ───── Live Screen Feeds ───── */}
-      {activeSessions.length > 0 && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4">
-            <Monitor className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-white">
-              Live Screen Feeds
-            </h2>
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <Monitor className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-sm font-semibold text-white">
+            Live Screen Feeds
+          </h2>
+          {activeSessions.length > 0 ? (
             <Badge variant="success" pulse>
               {activeSessions.length} Active
             </Badge>
-          </div>
+          ) : (
+            <Badge variant="default">No Active Sessions</Badge>
+          )}
+        </div>
 
+        {activeSessions.length === 0 ? (
+          <div className="text-center py-8">
+            <Monitor className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+            <p className="text-sm text-slate-400">
+              No active sessions to monitor
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Live screen feeds will appear here when a requester has an active
+              session
+            </p>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {activeSessions.map((session) => (
               <motion.div
@@ -244,8 +259,8 @@ export default function ActivityPage() {
               </motion.div>
             ))}
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
 
       {/* ───── Activity Log ───── */}
       {filtered.length === 0 ? (

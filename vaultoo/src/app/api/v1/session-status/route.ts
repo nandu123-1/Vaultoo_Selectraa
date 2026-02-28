@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const session = await prisma.session.findUnique({
       where: { sessionToken },
-      select: { status: true, expiresAt: true },
+      select: { id: true, status: true, expiresAt: true },
     });
 
     if (!session) {
@@ -55,7 +55,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ active: true }, { headers: CORS_HEADERS });
+    return NextResponse.json(
+      { active: true, expiresAt: session.expiresAt.toISOString() },
+      { headers: CORS_HEADERS },
+    );
   } catch (error) {
     console.error("[SessionStatus]", error);
     return NextResponse.json(
