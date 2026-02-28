@@ -1,16 +1,20 @@
-# Vaultoo + Selectra
+# Vaultoo
 
-A **zero-trust access orchestration platform** that lets account owners securely share credentials with requesters — without ever exposing passwords — using OTP-verified, time-limited sessions with real-time monitoring.
+> **Vaultoo is the core product.** Selectra is a demo application used solely to showcase Vaultoo's integration capabilities in a real-world scenario.
+
+Vaultoo is a **zero-trust access orchestration platform** that lets account owners securely share credentials with requesters — without ever exposing passwords — using OTP-verified, time-limited sessions with real-time monitoring.
+
+Selectra serves as a **reference integration**: a standalone AI interview web app that demonstrates how any third-party application can plug into Vaultoo's access control system. It is not a product of Vaultoo — it exists purely to make the platform's capabilities tangible and testable.
 
 ---
 
 ## Architecture
 
-| Layer                     | Tech                                                         | Description                                                                                                   |
-| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| **Vaultoo** (Dashboard)   | Next.js 14 · TypeScript · Tailwind CSS · Prisma · PostgreSQL | Owner/admin dashboard — manage accounts, approve requests, monitor sessions, kill switches, live screen feeds |
-| **Selectra** (Client App) | Flask · Vanilla JS/CSS                                       | AI interview platform that integrates with Vaultoo for secure access via OTP login                            |
-| **Database**              | PostgreSQL (Neon)                                            | User accounts, encrypted credentials, access requests, sessions, activity logs                                |
+| Layer                         | Tech                                                         | Description                                                                                                           |
+| ----------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Vaultoo** _(Core Platform)_ | Next.js 14 · TypeScript · Tailwind CSS · Prisma · PostgreSQL | The main product — owner dashboard, API server, session engine, encrypted credential vault                            |
+| **Selectra** _(Demo App)_     | Flask · Vanilla JS/CSS                                       | A sample third-party app that integrates with Vaultoo to demonstrate OTP access, live monitoring, and session control |
+| **Database**                  | PostgreSQL (Neon)                                            | User accounts, encrypted credentials, access requests, sessions, activity logs                                        |
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -34,7 +38,7 @@ A **zero-trust access orchestration platform** that lets account owners securely
 
 ## Features
 
-### Vaultoo (Owner Dashboard)
+### Vaultoo — Core Platform
 
 - **Account Vault** — Store platform credentials with AES-256 encryption; passwords are never exposed to requesters
 - **Access Requests** — Requesters submit time-limited access requests; owners approve/deny with one click
@@ -46,15 +50,15 @@ A **zero-trust access orchestration platform** that lets account owners securely
 - **Sentinel Risk Engine** — Automated risk level assessment (LOW / MEDIUM / HIGH / CRITICAL) per session
 - **Fully Responsive** — Mobile-first dashboard with collapsible sidebar, hamburger menu, and adaptive layouts
 
-### Selectra (Client App)
+### Selectra — Demo Integration App
 
-- **AI Interview Agent** — Multi-role interview simulator (Frontend, Backend, Full Stack, Data Science, DevOps, Cybersecurity)
-- **Real-Time Scoring** — Four-dimension scoring: Clarity, Accuracy, Completeness, Confidence
-- **Explainable AI** — Transparent signal detection showing why scores were given
-- **Smart Reports** — Comprehensive final reports with strengths, gaps, and recommendations
-- **Vaultoo OTP Login** — Secure temporary access via Vaultoo-issued OTP codes
-- **Live Screen Capture** — Streams screenshots to Vaultoo owner dashboard every 3 seconds
-- **Session Timer** — Visual countdown with auto-extension requests and forced logout on expiry
+> Selectra is **not a Vaultoo product**. It is a pre-built demo application used to illustrate what a real Vaultoo integration looks like end-to-end. Any third-party app can replicate this same integration pattern.
+
+- **Vaultoo OTP Login** — Secure temporary access granted via Vaultoo-issued OTP; no passwords are ever shared
+- **Live Screen Capture** — Streams screenshots to the Vaultoo owner dashboard every 3 seconds during an active session
+- **Session Timer** — Visual countdown with auto-extension requests and forced logout when the session expires
+- **AI Interview Agent** — Multi-role interview simulator included as demo app functionality (Frontend, Backend, Full Stack, DevOps, etc.)
+- **Real-Time Scoring** — Four-dimension answer scoring: Clarity, Accuracy, Completeness, Confidence
 - **Responsive Design** — Hamburger navigation, stacked layouts on mobile, adaptive chat interface
 
 ---
@@ -201,12 +205,12 @@ WEBHOOK_SECRET=         # Webhook auth secret
 
 ## Deployment
 
-Both projects are deployed on **Vercel**:
+Both are deployed on **Vercel**. Vaultoo is the primary deployment; Selectra is deployed separately as the demo companion app.
 
-| App      | URL                                                          |
-| -------- | ------------------------------------------------------------ |
-| Vaultoo  | [vaultoo.vercel.app](https://vaultoo.vercel.app)             |
-| Selectra | [selectra-rose.vercel.app](https://selectra-rose.vercel.app) |
+| App          | Role                 | URL                                                          |
+| ------------ | -------------------- | ------------------------------------------------------------ |
+| **Vaultoo**  | Core platform        | [vaultoo.vercel.app](https://vaultoo.vercel.app)             |
+| **Selectra** | Demo integration app | [selectra-rose.vercel.app](https://selectra-rose.vercel.app) |
 
 ---
 
