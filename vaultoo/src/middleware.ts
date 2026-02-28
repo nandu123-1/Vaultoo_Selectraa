@@ -21,21 +21,7 @@ const publicPaths = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths
-  if (publicPaths.some((path) => pathname.startsWith(path))) {
-    return NextResponse.next();
-  }
-
-  // Allow static assets & api preflight
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".")
-  ) {
-    return NextResponse.next();
-  }
-
-  // Handle OPTIONS (CORS preflight)
+  // Handle OPTIONS (CORS preflight) FIRST — before any auth checks
   if (request.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 200,
@@ -46,6 +32,20 @@ export function middleware(request: NextRequest) {
           "Content-Type, Authorization, X-Session-Token",
       },
     });
+  }
+
+  // Allow public paths
+  if (publicPaths.some((path) => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+
+  // Allow static assets
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
   }
 
   // Check for auth token
