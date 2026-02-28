@@ -960,7 +960,7 @@ async function newInterview() {
 const VAULTOO_API =
   window.location.hostname === "localhost"
     ? "http://localhost:3001"
-    : "https://vaultoo.netlify.app";
+    : "https://vaultoo.vercel.app";
 let vaultooSession = null;
 let vaultooTimerInterval = null;
 let vaultooStatusInterval = null;
