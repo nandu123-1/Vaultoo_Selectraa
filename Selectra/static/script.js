@@ -1541,7 +1541,9 @@ function stopScreenShare() {
 }
 
 /**
- * Capture a screenshot of the page and send to Vaultoo
+ * Capture a screenshot of the page and send to Vaultoo.
+ * Uses physical pixel dimensions scaled to a sensible capture resolution
+ * so the owner sees a crisp, readable feed on any screen size.
  */
 async function captureAndSendFrame() {
   if (!vaultooSession || !vaultooSession.sessionToken) {
@@ -1550,26 +1552,71 @@ async function captureAndSendFrame() {
   }
 
   try {
-    // Use html2canvas to capture the entire page
-    const canvas = await html2canvas(document.body, {
-      scale: 0.5, // Lower resolution for smaller payload
+    // ── Determine capture dimensions ──────────────────────────────
+    // We target a logical capture width of 1280 px (HD width) regardless
+    // of the actual device viewport, so the frame is always legible for
+    // the owner on any device (desktop, tablet, mobile).
+    const TARGET_WIDTH = 1280;
+    const viewW =
+      window.innerWidth || document.documentElement.clientWidth || 1280;
+    const viewH =
+      window.innerHeight || document.documentElement.clientHeight || 800;
+
+    // Scale factor: shrink or grow so the logical width ≈ TARGET_WIDTH
+    const captureScale = Math.min(TARGET_WIDTH / viewW, 1.5);
+
+    // Capture the visible viewport only (not the full scrollable page)
+    // so the owner sees exactly what the user is looking at right now.
+    const canvas = await html2canvas(document.documentElement, {
+      scale: captureScale,
       useCORS: true,
+      allowTaint: true,
       logging: false,
       backgroundColor: "#030014",
-      width: window.innerWidth,
-      height: window.innerHeight,
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
+      // Clamp to the visible window
+      x: window.scrollX || 0,
+      y: window.scrollY || 0,
+      width: viewW,
+      height: viewH,
+      windowWidth: viewW,
+      windowHeight: viewH,
+      scrollX: 0,
+      scrollY: 0,
+      removeContainer: true,
+      // Exclude the Vaultoo session bar from the captured image
+      ignoreElements: (el) =>
+        el.id === "vaultooSessionBar" || el.id === "screenShareIndicator",
     });
 
-    // Convert to compressed JPEG base64
+    // ── Export as JPEG at good quality ────────────────────────────
+    // Quality 0.72 gives ~40–80 KB for a typical HD frame — readable
+    // and well within the 500 KB API limit.
     const base64 = canvas
-      .toDataURL("image/jpeg", 0.4)
+      .toDataURL("image/jpeg", 0.72)
       .replace("data:image/jpeg;base64,", "");
 
-    // Check size — skip if too large (>250KB)
-    if (base64.length > 250000) {
-      console.log("[ScreenShare] Frame too large, skipping:", base64.length);
+    // Skip frames that somehow exceed 480 KB (safety net)
+    if (base64.length > 480_000) {
+      // Retry at lower quality before giving up
+      const fallback = canvas
+        .toDataURL("image/jpeg", 0.45)
+        .replace("data:image/jpeg;base64,", "");
+      if (fallback.length > 480_000) {
+        console.log(
+          "[ScreenShare] Frame still too large after fallback, skipping",
+        );
+        return;
+      }
+      await fetch(`${VAULTOO_API}/api/v1/screen-share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionToken: vaultooSession.sessionToken,
+          frame: fallback,
+          width: Math.round(viewW * captureScale),
+          height: Math.round(viewH * captureScale),
+        }),
+      });
       return;
     }
 
@@ -1580,6 +1627,8 @@ async function captureAndSendFrame() {
       body: JSON.stringify({
         sessionToken: vaultooSession.sessionToken,
         frame: base64,
+        width: Math.round(viewW * captureScale),
+        height: Math.round(viewH * captureScale),
       }),
     });
   } catch (err) {

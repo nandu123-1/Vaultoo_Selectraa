@@ -8,7 +8,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "feed";
 }
 
 const sizeClasses = {
@@ -16,6 +16,11 @@ const sizeClasses = {
   md: "max-w-lg",
   lg: "max-w-2xl",
   xl: "max-w-[75vw]",
+  // "feed" is optimised for screen-share view:
+  // — on mobile  : nearly full-width (calc 100% - 1rem)
+  // — on tablet+ : up to 85vw
+  // — on desktop : capped at 1200px so it never overwhelms a large monitor
+  feed: "max-w-[calc(100vw-1rem)] sm:max-w-[85vw] xl:max-w-[1200px]",
 };
 
 export default function Modal({
@@ -47,7 +52,8 @@ export default function Modal({
             className={`
               fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
               w-[calc(100%-2rem)] ${sizeClasses[size]}
-              max-h-[90vh] overflow-y-auto
+              ${size === "feed" ? "max-h-[95vh]" : "max-h-[90vh]"}
+              overflow-y-auto
               bg-slate-900/95 backdrop-blur-xl
               border border-white/10 rounded-2xl
               shadow-2xl shadow-black/50 z-50

@@ -39,6 +39,8 @@ interface LiveSession {
 
 interface FrameData {
   frame: string | null;
+  frameWidth: number | null;
+  frameHeight: number | null;
   frameUpdatedAt: string | null;
   user: { name: string; email: string };
 }
@@ -199,7 +201,7 @@ export default function ActivityPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {activeSessions.map((session) => (
               <motion.div
                 key={session.id}
@@ -208,25 +210,31 @@ export default function ActivityPage() {
                 className="relative group rounded-xl border border-white/5 bg-black/30 overflow-hidden cursor-pointer hover:border-violet-500/30 transition-all"
                 onClick={() => startWatching(session.id)}
               >
-                <div className="aspect-video bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative">
-                  <div className="text-center">
-                    <Monitor className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <p className="text-xs text-slate-500">
-                      Click to watch live
-                    </p>
-                  </div>
-
-                  <div className="absolute inset-0 bg-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="bg-violet-500/80 rounded-full p-3">
-                      <Eye className="w-5 h-5 text-white" />
+                {/* 16:9 preview thumbnail — consistent across all screen sizes */}
+                <div
+                  className="w-full"
+                  style={{ paddingBottom: "56.25%", position: "relative" }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+                    <div className="text-center">
+                      <Monitor className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                      <p className="text-xs text-slate-500">
+                        Click to watch live
+                      </p>
                     </div>
-                  </div>
 
-                  <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-[10px] text-white font-medium">
-                      LIVE
-                    </span>
+                    <div className="absolute inset-0 bg-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="bg-violet-500/80 rounded-full p-3">
+                        <Eye className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                      <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-[10px] text-white font-medium">
+                        LIVE
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -326,59 +334,87 @@ export default function ActivityPage() {
         isOpen={feedOpen}
         onClose={stopWatching}
         title="Live Screen Feed"
-        size="xl"
+        size="feed"
       >
-        <div className="space-y-4">
-          <div className="relative rounded-xl overflow-hidden bg-black border border-white/10 aspect-video">
-            {frameData?.frame ? (
-              <motion.img
-                key={frameData.frameUpdatedAt}
-                initial={{ opacity: 0.7 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                src={`data:image/jpeg;base64,${frameData.frame}`}
-                alt="Live screen feed"
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                {frameLoading ? (
-                  <>
-                    <RefreshCw className="w-8 h-8 text-violet-400 animate-spin mb-3" />
-                    <p className="text-sm text-slate-400">
-                      Connecting to screen feed...
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="w-8 h-8 text-slate-600 mb-3" />
-                    <p className="text-sm text-slate-400">
-                      No screen feed available
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      The requester needs to enable screen sharing in Selectra
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
+        <div className="space-y-3">
+          {/* Dynamic aspect ratio container — respects the actual captured frame dimensions */}
+          {(() => {
+            // Compute aspect ratio from frame metadata, fallback to 16:9
+            const w = frameData?.frameWidth ?? 16;
+            const h = frameData?.frameHeight ?? 9;
+            const paddingPct = `${((h / w) * 100).toFixed(4)}%`;
+            return (
+              <div
+                className="relative w-full rounded-xl overflow-hidden bg-black border border-white/10"
+                style={{ paddingBottom: paddingPct }}
+              >
+                <div className="absolute inset-0">
+                  {frameData?.frame ? (
+                    <motion.img
+                      key={frameData.frameUpdatedAt}
+                      initial={{ opacity: 0.7 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.25 }}
+                      src={`data:image/jpeg;base64,${frameData.frame}`}
+                      alt="Live screen feed"
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: "auto" }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      {frameLoading ? (
+                        <>
+                          <RefreshCw className="w-8 h-8 text-violet-400 animate-spin mb-3" />
+                          <p className="text-sm text-slate-400">
+                            Connecting to screen feed...
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-8 h-8 text-slate-600 mb-3" />
+                          <p className="text-sm text-slate-400">
+                            No screen feed available
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            The requester needs to enable screen sharing in
+                            Selectra
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
 
-            {frameData?.frame && (
-              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs text-white font-medium">LIVE</span>
-              </div>
-            )}
+                  {frameData?.frame && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
+                      <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-xs text-white font-medium">
+                        LIVE
+                      </span>
+                    </div>
+                  )}
 
-            {frameData?.frameUpdatedAt && (
-              <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
-                <span className="text-[10px] text-slate-400">
-                  Updated:{" "}
-                  {new Date(frameData.frameUpdatedAt).toLocaleTimeString()}
-                </span>
+                  {frameData?.frameUpdatedAt && (
+                    <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
+                      <span className="text-[10px] text-slate-400">
+                        Updated:{" "}
+                        {new Date(
+                          frameData.frameUpdatedAt,
+                        ).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  )}
+
+                  {frameData?.frameWidth && frameData.frameHeight && (
+                    <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
+                      <span className="text-[10px] text-slate-400">
+                        {frameData.frameWidth}&times;{frameData.frameHeight}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {frameData?.user && (
             <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
