@@ -1090,10 +1090,14 @@ async function verifyVaultooOTP() {
 
       logVaultooActivity("SESSION_STARTED", "/", "OTP verified manually");
     } else {
-      showVaultooError(data.error || "Invalid OTP. Please try again.");
+      showVaultooError(
+        data.message || data.error || "Invalid OTP. Please try again.",
+      );
     }
   } catch (err) {
-    showVaultooError("Cannot connect to Vaultoo. Is it running on port 3001?");
+    showVaultooError(
+      "Cannot connect to Vaultoo. Please check the server is running.",
+    );
     console.error("Vaultoo OTP verify error:", err);
   } finally {
     verifyBtn.disabled = false;
